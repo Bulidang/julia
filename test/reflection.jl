@@ -139,11 +139,20 @@ end # module WarnType
 @test isbits(Tuple{Vararg{Any, 0}})
 
 # issue #16670
-@test isleaftype(Tuple{Int, Vararg{Int, 2}})
-@test !isleaftype(Tuple{Integer, Vararg{Int, 2}})
-@test !isleaftype(Tuple{Int, Vararg{Int}})
-@test isleaftype(Type{Tuple{Integer, Vararg{Int}}})
-@test isleaftype(Type{Vector})
+@test Base._isleaftype(Tuple{Int, Vararg{Int, 2}})
+@test !Base._isleaftype(Tuple{Integer, Vararg{Int, 2}})
+@test !Base._isleaftype(Tuple{Int, Vararg{Int}})
+@test Base._isleaftype(Type{Tuple{Integer, Vararg{Int}}})
+@test Base._isleaftype(Type{Vector})
+@test isconcrete(Int)
+@test isconcrete(Vector{Int})
+@test isconcrete(Tuple{Int, Vararg{Int, 2}})
+@test !isconcrete(Tuple{Integer, Vararg{Int, 2}})
+@test !isconcrete(Tuple{Int, Vararg{Int}})
+@test !isconcrete(Type{Tuple{Integer, Vararg{Int}}})
+@test !isconcrete(Type{Vector})
+@test !isconcrete(Union{})
+@test !isconcrete(Tuple{Union{}})
 
 # issue #10165
 i10165(::Type) = 0

@@ -287,28 +287,36 @@ isbits(t::DataType) = (@_pure_meta; !t.mutable & (t.layout != C_NULL) && datatyp
 isbits(t::Type) = (@_pure_meta; false)
 isbits(x) = (@_pure_meta; isbits(typeof(x)))
 
-"""
-    isleaftype(T)
+_isleaftype(@nospecialize(t)) = (@_pure_meta; isa(t, DataType) && t.isleaftype)
 
-Determine whether `T`'s only subtypes are itself and `Union{}`. This means `T` is
-a concrete type that can have instances.
+"""
+    isconcrete(T)
+
+Determine whether `T` is a concrete type, meaning it can have direct instances
+(values `x` such that `typeof(x) === T`).
 
 # Examples
 ```jldoctest
-julia> isleaftype(Complex)
+julia> isconcrete(Complex)
 false
 
-julia> isleaftype(Complex{Float32})
+julia> isconcrete(Complex{Float32})
 true
 
-julia> isleaftype(Vector{Complex})
+julia> isconcrete(Vector{Complex})
 true
 
-julia> isleaftype(Vector{Complex{Float32}})
+julia> isconcrete(Vector{Complex{Float32}})
 true
+
+julia> isconcrete(Union{})
+false
+
+julia> isconcrete(Union{Int,String})
+false
 ```
 """
-isleaftype(@nospecialize(t)) = (@_pure_meta; isa(t, DataType) && t.isleaftype)
+isconcrete(@nospecialize(t)) = (@_pure_meta; isa(t, DataType) && t.layout != C_NULL)
 
 """
     Base.isabstract(T)
@@ -791,7 +799,7 @@ function _dump_function_linfo(linfo::Core.MethodInstance, world::UInt, native::B
     end
 
     # TODO: use jl_is_cacheable_sig instead of isleaftype
-    isleaftype(linfo.specTypes) || (str = "; WARNING: This code may not match what actually runs.\n" * str)
+    _isleaftype(linfo.specTypes) || (str = "; WARNING: This code may not match what actually runs.\n" * str)
     return str
 end
 
@@ -822,7 +830,7 @@ code_native(::IO, ::Any, ::Symbol) = error("illegal code_native call") # resolve
 
 # give a decent error message if we try to instantiate a staged function on non-leaf types
 function func_for_method_checked(m::Method, @nospecialize types)
-    if isdefined(m,:generator) && !isdefined(m,:source) && !isleaftype(types)
+    if isdefined(m,:generator) && !isdefined(m,:source) && !_isleaftype(types)
         error("cannot call @generated function `", m, "` ",
               "with abstract argument types: ", types)
     end

@@ -1766,6 +1766,9 @@ import .Iterators.enumerate
 # issue #5794
 @deprecate map(f, d::T) where {T<:Associative}  T( f(p) for p in pairs(d) )
 
+# issue #17086
+@deprecate isleaftype isconcrete
+
 # END 0.7 deprecations
 
 # BEGIN 1.0 deprecations
